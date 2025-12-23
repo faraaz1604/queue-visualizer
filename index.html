@@ -4,108 +4,498 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Queue Implementation Visualizer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .animate-pulse-scale {
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(to bottom right, #eff6ff, #faf5ff);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .btn-array { background: #2563eb; color: white; }
+        .btn-array.active { box-shadow: 0 8px 16px rgba(37, 99, 235, 0.4); }
+        .btn-linked { background: white; color: #374151; }
+        .btn-linked.active { background: #16a34a; color: white; box-shadow: 0 8px 16px rgba(22, 163, 74, 0.4); }
+        .btn-code { background: #9333ea; color: white; }
+        .btn-enqueue { background: #16a34a; color: white; }
+        .btn-dequeue { background: #dc2626; color: white; }
+        .btn-peek { background: #2563eb; color: white; }
+        .btn-isempty { background: #9333ea; color: white; }
+        .btn-reset { background: #4b5563; color: white; }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+        }
+        
+        .visualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 8rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+        
+        .queue-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .queue-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .cell-box {
+            width: 4rem;
+            height: 4rem;
+            border: 2px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: #f3f4f6;
+            transition: all 0.3s;
+        }
+        
+        .cell-box.filled {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+        
+        .cell-box.highlight {
+            background: #fef08a;
+            border-color: #eab308;
+            transform: scale(1.1);
             animation: pulse 0.5s ease-in-out;
+        }
+        
+        .cell-index {
+            font-size: 0.75rem;
+            color: #4b5563;
+            margin-top: 0.25rem;
+        }
+        
+        .cell-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 0.25rem;
+        }
+        
+        .label-front { color: #16a34a; }
+        .label-rear { color: #dc2626; }
+        
+        .linked-node {
+            display: flex;
+            align-items: center;
+        }
+        
+        .node-box {
+            width: 5rem;
+            height: 4rem;
+            border: 2px solid #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: #dcfce7;
+            transition: all 0.3s;
+        }
+        
+        .node-box.highlight {
+            background: #fef08a;
+            border-color: #eab308;
+            transform: scale(1.1);
+        }
+        
+        .arrow {
+            margin: 0 0.5rem;
+            font-size: 1.5rem;
+            color: #9ca3af;
+        }
+        
+        .empty-queue {
+            color: #9ca3af;
+            font-size: 1.125rem;
+        }
+        
+        .variables-tracker {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            color: white;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .variables-tracker h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .variables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .variable-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+        
+        .variable-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .variable-item.changed {
+            animation: highlight-change 0.6s ease-in-out;
+        }
+        
+        @keyframes highlight-change {
+            0%, 100% { background: rgba(255, 255, 255, 0.15); }
+            50% { background: rgba(254, 240, 138, 0.5); transform: scale(1.05); }
+        }
+        
+        .variable-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.9;
+            margin-bottom: 0.25rem;
+        }
+        
+        .variable-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        input {
+            padding: 0.5rem 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .message {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d1fae5;
+            color: #047857;
+        }
+        
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .message.hidden {
+            display: none;
+        }
+        
+        .code-section {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .code-section.hidden {
+            display: none;
+        }
+        
+        .code-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .code-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            background: #e5e7eb;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .code-tab.active {
+            background: #2563eb;
+            color: white;
+        }
+        
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .complexity-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (min-width: 768px) {
+            .complexity-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .complexity-card {
+            border: 2px solid;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .complexity-card.array {
+            border-color: #bfdbfe;
+        }
+        
+        .complexity-card.linked {
+            border-color: #bbf7d0;
+        }
+        
+        .complexity-card h4 {
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        
+        .complexity-card.array h4 {
+            color: #1d4ed8;
+        }
+        
+        .complexity-card.linked h4 {
+            color: #15803d;
+        }
+        
+        .complexity-list {
+            list-style: none;
+        }
+        
+        .complexity-list li {
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .problem {
+            color: #dc2626;
+            margin-top: 0.75rem;
+        }
+        
+        .advantage {
+            color: #16a34a;
+            margin-top: 0.75rem;
+        }
+        
+        .best-impl {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fefce8;
+            border: 2px solid #fde047;
+            border-radius: 0.5rem;
+        }
+        
+        .best-impl h4 {
+            font-weight: bold;
+            color: #854d0e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .best-impl p {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.1); }
+            50% { transform: scale(1.2); }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen p-4">
-    <div id="app" class="w-full max-w-6xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Queue Implementation Visualizer</h1>
+<body>
+    <div class="container">
+        <h1>Queue Implementation Visualizer</h1>
         
-        <div class="mb-6 flex gap-4 justify-center flex-wrap">
-            <button onclick="switchType('array')" id="arrayBtn" class="px-6 py-3 rounded-lg font-semibold transition-all bg-blue-600 text-white shadow-lg">
+        <div class="btn-group">
+            <button onclick="switchType('array')" id="arrayBtn" class="btn-array active">
                 Array Implementation
             </button>
-            <button onclick="switchType('linked')" id="linkedBtn" class="px-6 py-3 rounded-lg font-semibold transition-all bg-white text-gray-700 hover:bg-gray-100">
+            <button onclick="switchType('linked')" id="linkedBtn" class="btn-linked">
                 Linked List Implementation
             </button>
-            <button onclick="toggleCode()" class="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
+            <button onclick="toggleCode()" class="btn-code">
                 <span id="codeIcon">📝</span>
                 <span id="codeText">Show</span> Java Code
             </button>
         </div>
 
-        <div class="bg-white rounded-lg p-6 shadow-lg mb-6">
-            <h2 id="queueTitle" class="text-xl font-semibold mb-4 text-gray-700">Array-Based Queue</h2>
-            <div class="flex justify-center items-center min-h-32 overflow-x-auto pb-4">
-                <div id="visualization" class="flex gap-2"></div>
+        <div class="variables-tracker">
+            <h3>
+                <span>📊</span>
+                <span>Queue State Variables</span>
+            </h3>
+            <div class="variables-grid" id="variablesGrid"></div>
+        </div>
+
+        <div class="card">
+            <h2 id="queueTitle">Array-Based Queue</h2>
+            <div class="visualization">
+                <div id="visualization" class="queue-container"></div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg p-6 shadow-lg mb-6">
-            <div class="flex flex-wrap gap-3 items-center justify-center">
-                <input type="text" id="inputValue" placeholder="Enter value" 
-                    class="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
-                <button onclick="enqueue()" class="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all">
-                    ➕ Enqueue
-                </button>
-                <button onclick="dequeue()" class="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all">
-                    ➖ Dequeue
-                </button>
-                <button onclick="peek()" class="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
-                    👁️ Peek
-                </button>
-                <button onclick="isEmpty()" class="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all">
-                    ❓ isEmpty
-                </button>
-                <button onclick="reset()" class="flex items-center gap-2 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-all">
-                    🔄 Reset
-                </button>
+        <div class="card">
+            <div class="controls">
+                <input type="text" id="inputValue" placeholder="Enter value">
+                <button onclick="enqueue()" class="btn-enqueue">➕ Enqueue</button>
+                <button onclick="dequeue()" class="btn-dequeue">➖ Dequeue</button>
+                <button onclick="peek()" class="btn-peek">👁️ Peek</button>
+                <button onclick="isEmpty()" class="btn-isempty">❓ isEmpty</button>
+                <button onclick="reset()" class="btn-reset">🔄 Reset</button>
             </div>
         </div>
 
-        <div id="message" class="text-center p-4 rounded-lg mb-6 hidden"></div>
+        <div id="message" class="message hidden"></div>
 
-        <div id="codeSection" class="bg-white rounded-lg p-6 shadow-lg mb-6 hidden">
-            <h3 class="text-xl font-semibold mb-4 text-gray-800">Java Implementation Code</h3>
-            <div class="flex gap-2 mb-4 flex-wrap">
-                <button onclick="showCode('array')" id="arrayCodeBtn" class="px-4 py-2 rounded bg-blue-600 text-white">
+        <div id="codeSection" class="code-section hidden">
+            <h2>Java Implementation Code</h2>
+            <div class="code-tabs">
+                <button onclick="showCode('array')" id="arrayCodeBtn" class="code-tab active">
                     Array Code
                 </button>
-                <button onclick="showCode('linked')" id="linkedCodeBtn" class="px-4 py-2 rounded bg-gray-200">
+                <button onclick="showCode('linked')" id="linkedCodeBtn" class="code-tab">
                     Linked List Code
                 </button>
-                <button onclick="showCode('circular')" id="circularCodeBtn" class="px-4 py-2 rounded bg-gray-200">
+                <button onclick="showCode('circular')" id="circularCodeBtn" class="code-tab">
                     Circular Queue Code
                 </button>
             </div>
-            <pre class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"><code id="codeDisplay"></code></pre>
+            <pre><code id="codeDisplay"></code></pre>
         </div>
 
-        <div class="bg-white rounded-lg p-6 shadow-lg">
-            <h3 class="text-xl font-semibold mb-4 text-gray-800">Time Complexity Analysis</h3>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="border-2 border-blue-200 rounded-lg p-4">
-                    <h4 class="font-bold text-blue-700 mb-3">Array Implementation</h4>
-                    <ul class="space-y-2 text-sm">
+        <div class="card">
+            <h2>Time Complexity Analysis</h2>
+            <div class="complexity-grid">
+                <div class="complexity-card array">
+                    <h4>Array Implementation</h4>
+                    <ul class="complexity-list">
                         <li><strong>Enqueue:</strong> O(1) - Add to rear</li>
                         <li><strong>Dequeue:</strong> O(1) - Remove from front</li>
                         <li><strong>Peek:</strong> O(1) - Access front element</li>
                         <li><strong>isEmpty:</strong> O(1) - Check pointers</li>
-                        <li class="text-red-600 mt-3"><strong>Problem:</strong> Fixed size, wasted space after dequeues</li>
+                        <li class="problem"><strong>Problem:</strong> Fixed size, wasted space after dequeues</li>
                     </ul>
                 </div>
-                <div class="border-2 border-green-200 rounded-lg p-4">
-                    <h4 class="font-bold text-green-700 mb-3">Linked List Implementation</h4>
-                    <ul class="space-y-2 text-sm">
+                <div class="complexity-card linked">
+                    <h4>Linked List Implementation</h4>
+                    <ul class="complexity-list">
                         <li><strong>Enqueue:</strong> O(1) - Add to rear</li>
                         <li><strong>Dequeue:</strong> O(1) - Remove from front</li>
                         <li><strong>Peek:</strong> O(1) - Access front node</li>
                         <li><strong>isEmpty:</strong> O(1) - Check if head is null</li>
-                        <li class="text-green-600 mt-3"><strong>Advantage:</strong> Dynamic size, no wasted space</li>
+                        <li class="advantage"><strong>Advantage:</strong> Dynamic size, no wasted space</li>
                     </ul>
                 </div>
             </div>
-            <div class="mt-6 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
-                <h4 class="font-bold text-yellow-800 mb-2">Best Implementation?</h4>
-                <p class="text-sm text-gray-700">
+            <div class="best-impl">
+                <h4>Best Implementation?</h4>
+                <p>
                     <strong>Linked List is generally better</strong> for queues because it has dynamic size and no wasted space. 
                     Array implementation suffers from the problem shown above - space at the beginning becomes unusable after dequeues. 
                     A <strong>Circular Queue</strong> (array-based) solves this by wrapping around, but Linked List remains the most flexible choice.
@@ -123,6 +513,7 @@
         let highlightIndex = -1;
         let showingCode = false;
         let currentCodeView = 'array';
+        let previousVariables = {};
 
         const codes = {
             array: `// Array-Based Queue Implementation
@@ -306,34 +697,105 @@ public class CircularQueue {
 }`
         };
 
+        function updateVariables() {
+            const gridEl = document.getElementById('variablesGrid');
+            const currentVariables = {};
+            
+            if (queueType === 'array') {
+                currentVariables.front = front;
+                currentVariables.rear = rear;
+                currentVariables.capacity = arraySize;
+                currentVariables.size = front > rear || rear < 0 ? 0 : (rear - front + 1);
+                currentVariables.isEmpty = front > rear || rear < 0;
+                currentVariables.isFull = rear >= arraySize - 1;
+                
+                gridEl.innerHTML = `
+                    <div class="variable-item ${previousVariables.front !== front ? 'changed' : ''}" id="var-front">
+                        <div class="variable-label">front</div>
+                        <div class="variable-value">${front}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.rear !== rear ? 'changed' : ''}" id="var-rear">
+                        <div class="variable-label">rear</div>
+                        <div class="variable-value">${rear}</div>
+                    </div>
+                    <div class="variable-item" id="var-capacity">
+                        <div class="variable-label">capacity</div>
+                        <div class="variable-value">${arraySize}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}" id="var-size">
+                        <div class="variable-label">size</div>
+                        <div class="variable-value">${currentVariables.size}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}" id="var-empty">
+                        <div class="variable-label">isEmpty</div>
+                        <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.isFull !== currentVariables.isFull ? 'changed' : ''}" id="var-full">
+                        <div class="variable-label">isFull</div>
+                        <div class="variable-value">${currentVariables.isFull ? '✓' : '✗'}</div>
+                    </div>
+                `;
+            } else {
+                currentVariables.size = queue.length;
+                currentVariables.isEmpty = queue.length === 0;
+                currentVariables.frontData = queue.length > 0 ? queue[0] : 'null';
+                currentVariables.rearData = queue.length > 0 ? queue[queue.length - 1] : 'null';
+                
+                gridEl.innerHTML = `
+                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}" id="var-size">
+                        <div class="variable-label">size</div>
+                        <div class="variable-value">${currentVariables.size}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}" id="var-empty">
+                        <div class="variable-label">isEmpty</div>
+                        <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.frontData !== currentVariables.frontData ? 'changed' : ''}" id="var-front-data">
+                        <div class="variable-label">front.data</div>
+                        <div class="variable-value">${currentVariables.frontData}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.rearData !== currentVariables.rearData ? 'changed' : ''}" id="var-rear-data">
+                        <div class="variable-label">rear.data</div>
+                        <div class="variable-value">${currentVariables.rearData}</div>
+                    </div>
+                `;
+            }
+            
+            previousVariables = {...currentVariables};
+        }
+
         function showMessage(msg, isError = false) {
             const messageEl = document.getElementById('message');
             messageEl.textContent = msg;
-            messageEl.className = `text-center p-4 rounded-lg mb-6 ${
-                isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-            }`;
-            messageEl.classList.remove('hidden');
+            messageEl.className = `message ${isError ? 'error' : 'success'}`;
             setTimeout(() => messageEl.classList.add('hidden'), 3000);
         }
 
         function switchType(type) {
             queueType = type;
             reset();
-            document.getElementById('arrayBtn').className = type === 'array' 
-                ? 'px-6 py-3 rounded-lg font-semibold transition-all bg-blue-600 text-white shadow-lg'
-                : 'px-6 py-3 rounded-lg font-semibold transition-all bg-white text-gray-700 hover:bg-gray-100';
-            document.getElementById('linkedBtn').className = type === 'linked'
-                ? 'px-6 py-3 rounded-lg font-semibold transition-all bg-green-600 text-white shadow-lg'
-                : 'px-6 py-3 rounded-lg font-semibold transition-all bg-white text-gray-700 hover:bg-gray-100';
-            document.getElementById('queueTitle').textContent = type === 'array' 
-                ? 'Array-Based Queue' 
-                : 'Linked List Queue';
+            
+            const arrayBtn = document.getElementById('arrayBtn');
+            const linkedBtn = document.getElementById('linkedBtn');
+            
+            if (type === 'array') {
+                arrayBtn.className = 'btn-array active';
+                linkedBtn.className = 'btn-linked';
+                document.getElementById('queueTitle').textContent = 'Array-Based Queue';
+            } else {
+                arrayBtn.className = 'btn-array';
+                linkedBtn.className = 'btn-linked active';
+                document.getElementById('queueTitle').textContent = 'Linked List Queue';
+            }
+            
             render();
+            updateVariables();
         }
 
         function toggleCode() {
             showingCode = !showingCode;
-            document.getElementById('codeSection').classList.toggle('hidden');
+            const codeSection = document.getElementById('codeSection');
+            codeSection.classList.toggle('hidden');
             document.getElementById('codeText').textContent = showingCode ? 'Hide' : 'Show';
             if (showingCode) {
                 showCode(currentCodeView);
@@ -343,12 +805,11 @@ public class CircularQueue {
         function showCode(type) {
             currentCodeView = type;
             document.getElementById('codeDisplay').textContent = codes[type];
-            ['arrayCodeBtn', 'linkedCodeBtn', 'circularCodeBtn'].forEach(id => {
-                document.getElementById(id).className = 'px-4 py-2 rounded bg-gray-200';
-            });
-            const btnMap = {array: 'arrayCodeBtn', linked: 'linkedCodeBtn', circular: 'circularCodeBtn'};
-            document.getElementById(btnMap[type]).className = 'px-4 py-2 rounded ' + 
-                (type === 'array' ? 'bg-blue-600' : type === 'linked' ? 'bg-green-600' : 'bg-orange-600') + ' text-white';
+            
+            document.getElementById('arrayCodeBtn').className = 'code-tab';
+            document.getElementById('linkedCodeBtn').className = 'code-tab';
+            document.getElementById('circularCodeBtn').className = 'code-tab';
+            document.getElementById(type + 'CodeBtn').className = 'code-tab active';
         }
 
         async function enqueue() {
@@ -371,6 +832,7 @@ public class CircularQueue {
                 
                 queue[rear + 1] = value;
                 rear++;
+                updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
@@ -382,6 +844,7 @@ public class CircularQueue {
                 await sleep(500);
                 
                 queue.push(value);
+                updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
@@ -404,6 +867,7 @@ public class CircularQueue {
                 const value = queue[front];
                 queue[front] = undefined;
                 front++;
+                updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
@@ -419,6 +883,7 @@ public class CircularQueue {
                 await sleep(500);
                 
                 const value = queue.shift();
+                updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
@@ -467,8 +932,10 @@ public class CircularQueue {
             front = 0;
             rear = -1;
             highlightIndex = -1;
+            previousVariables = {};
             document.getElementById('inputValue').value = '';
             render();
+            updateVariables();
         }
 
         function render() {
@@ -482,42 +949,35 @@ public class CircularQueue {
                     const isHighlight = i === highlightIndex;
                     
                     html += `
-                        <div class="flex flex-col items-center">
-                            <div class="w-16 h-16 border-2 flex items-center justify-center text-lg font-semibold transition-all duration-300 ${
-                                isHighlight ? 'bg-yellow-300 border-yellow-500 scale-110 animate-pulse-scale' :
-                                queue[i] !== undefined ? 'bg-blue-100 border-blue-500' : 'bg-gray-100 border-gray-300'
-                            }">
+                        <div class="queue-cell">
+                            <div class="cell-box ${queue[i] !== undefined ? 'filled' : ''} ${isHighlight ? 'highlight' : ''}">
                                 ${queue[i] !== undefined ? queue[i] : ''}
                             </div>
-                            <div class="text-xs mt-1 text-gray-600">${i}</div>
-                            ${(isFront || isRear) ? `
-                                <div class="text-xs mt-1 font-bold ${isFront ? 'text-green-600' : 'text-red-600'}">
-                                    ${isFront ? 'FRONT' : ''}${isRear && isFront ? ' / ' : ''}${isRear ? 'REAR' : ''}
-                                </div>
-                            ` : ''}
+                            <div class="cell-index">${i}</div>
+                            ${isFront ? '<div class="cell-label label-front">FRONT</div>' : ''}
+                            ${isRear && !isFront ? '<div class="cell-label label-rear">REAR</div>' : ''}
+                            ${isFront && isRear ? '<div class="cell-label label-rear">FRONT/REAR</div>' : ''}
                         </div>
                     `;
                 }
                 viz.innerHTML = html;
             } else {
                 if (queue.length === 0) {
-                    viz.innerHTML = '<div class="text-gray-400 text-lg">Empty Queue</div>';
+                    viz.innerHTML = '<div class="empty-queue">Empty Queue</div>';
                 } else {
                     let html = '';
                     queue.forEach((item, index) => {
                         const isHighlight = index === highlightIndex;
                         html += `
-                            <div class="flex items-center">
-                                <div class="flex flex-col items-center transition-all duration-300 ${isHighlight ? 'scale-110 animate-pulse-scale' : ''}">
-                                    <div class="w-20 h-16 border-2 flex items-center justify-center text-lg font-semibold ${
-                                        isHighlight ? 'bg-yellow-300 border-yellow-500' : 'bg-green-100 border-green-500'
-                                    }">
+                            <div class="linked-node">
+                                <div class="queue-cell">
+                                    <div class="node-box ${isHighlight ? 'highlight' : ''}">
                                         ${item}
                                     </div>
-                                    ${index === 0 ? '<div class="text-xs mt-1 font-bold text-green-600">FRONT</div>' : ''}
-                                    ${index === queue.length - 1 ? '<div class="text-xs mt-1 font-bold text-red-600">REAR</div>' : ''}
+                                    ${index === 0 ? '<div class="cell-label label-front">FRONT</div>' : ''}
+                                    ${index === queue.length - 1 ? '<div class="cell-label label-rear">REAR</div>' : ''}
                                 </div>
-                                ${index < queue.length - 1 ? '<div class="mx-2 text-2xl text-gray-400">→</div>' : ''}
+                                ${index < queue.length - 1 ? '<div class="arrow">→</div>' : ''}
                             </div>
                         `;
                     });
@@ -531,6 +991,7 @@ public class CircularQueue {
         }
 
         render();
+        updateVariables();
     </script>
 </body>
 </html>
