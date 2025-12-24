@@ -59,6 +59,8 @@
         
         .btn-array { background: #2563eb; color: white; }
         .btn-array.active { box-shadow: 0 8px 16px rgba(37, 99, 235, 0.4); }
+        .btn-circular { background: white; color: #374151; }
+        .btn-circular.active { background: #f97316; color: white; box-shadow: 0 8px 16px rgba(249, 115, 22, 0.4); }
         .btn-linked { background: white; color: #374151; }
         .btn-linked.active { background: #16a34a; color: white; box-shadow: 0 8px 16px rgba(22, 163, 74, 0.4); }
         .btn-code { background: #9333ea; color: white; }
@@ -95,6 +97,100 @@
         .queue-container {
             display: flex;
             gap: 0.5rem;
+        }
+        
+        .circular-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 2rem auto;
+        }
+        
+        .circular-cell {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            transform-origin: center;
+        }
+        
+        .circular-box {
+            width: 100%;
+            height: 100%;
+            border: 3px solid #f97316;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: #fff;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .circular-box.filled {
+            background: #fed7aa;
+            border-color: #f97316;
+        }
+        
+        .circular-box.highlight {
+            background: #fef08a;
+            border-color: #eab308;
+            transform: scale(1.15);
+            animation: pulse 0.5s ease-in-out;
+            box-shadow: 0 4px 16px rgba(234, 179, 8, 0.5);
+        }
+        
+        .circular-index {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 0.25rem;
+        }
+        
+        .circular-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            white-space: nowrap;
+        }
+        
+        .label-front-circular {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .label-rear-circular {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .wrap-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #f97316;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .wrap-indicator.show {
+            opacity: 1;
+            animation: rotate-wrap 1s ease-in-out;
+        }
+        
+        @keyframes rotate-wrap {
+            0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.3); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
         }
         
         .queue-cell {
@@ -241,6 +337,40 @@
             font-family: 'Courier New', monospace;
         }
         
+        .explanation-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .explanation-box h4 {
+            color: #92400e;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .explanation-box p {
+            color: #78350f;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .formula {
+            background: #fff;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #1f2937;
+            margin: 0.5rem 0;
+            display: inline-block;
+        }
+        
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -333,7 +463,7 @@
         
         @media (min-width: 768px) {
             .complexity-grid {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr 1fr 1fr;
             }
         }
         
@@ -347,6 +477,10 @@
             border-color: #bfdbfe;
         }
         
+        .complexity-card.circular {
+            border-color: #fed7aa;
+        }
+        
         .complexity-card.linked {
             border-color: #bbf7d0;
         }
@@ -358,6 +492,10 @@
         
         .complexity-card.array h4 {
             color: #1d4ed8;
+        }
+        
+        .complexity-card.circular h4 {
+            color: #c2410c;
         }
         
         .complexity-card.linked h4 {
@@ -414,10 +552,13 @@
         
         <div class="btn-group">
             <button onclick="switchType('array')" id="arrayBtn" class="btn-array active">
-                Array Implementation
+                Array Queue
+            </button>
+            <button onclick="switchType('circular')" id="circularBtn" class="btn-circular">
+                🔄 Circular Queue
             </button>
             <button onclick="switchType('linked')" id="linkedBtn" class="btn-linked">
-                Linked List Implementation
+                Linked List Queue
             </button>
             <button onclick="toggleCode()" class="btn-code">
                 <span id="codeIcon">📝</span>
@@ -437,6 +578,17 @@
             <h2 id="queueTitle">Array-Based Queue</h2>
             <div class="visualization">
                 <div id="visualization" class="queue-container"></div>
+            </div>
+            
+            <div id="circularExplanation" class="explanation-box" style="display: none;">
+                <h4>🔄 Why Modulo (%) Operator?</h4>
+                <p>
+                    The modulo operator makes the array "wrap around" like a circle:<br>
+                    <span class="formula">rear = (rear + 1) % capacity</span><br>
+                    <strong>Example:</strong> If capacity = 8 and rear = 7, then (7 + 1) % 8 = 0<br>
+                    This means after reaching the end (index 7), it wraps back to the beginning (index 0)!<br>
+                    <strong>Watch the circular visualization above</strong> - see how front and rear wrap around the circle! 🎯
+                </p>
             </div>
         </div>
 
@@ -459,11 +611,11 @@
                 <button onclick="showCode('array')" id="arrayCodeBtn" class="code-tab active">
                     Array Code
                 </button>
-                <button onclick="showCode('linked')" id="linkedCodeBtn" class="code-tab">
-                    Linked List Code
-                </button>
                 <button onclick="showCode('circular')" id="circularCodeBtn" class="code-tab">
                     Circular Queue Code
+                </button>
+                <button onclick="showCode('linked')" id="linkedCodeBtn" class="code-tab">
+                    Linked List Code
                 </button>
             </div>
             <pre><code id="codeDisplay"></code></pre>
@@ -475,30 +627,40 @@
                 <div class="complexity-card array">
                     <h4>Array Implementation</h4>
                     <ul class="complexity-list">
-                        <li><strong>Enqueue:</strong> O(1) - Add to rear</li>
-                        <li><strong>Dequeue:</strong> O(1) - Remove from front</li>
-                        <li><strong>Peek:</strong> O(1) - Access front element</li>
-                        <li><strong>isEmpty:</strong> O(1) - Check pointers</li>
-                        <li class="problem"><strong>Problem:</strong> Fixed size, wasted space after dequeues</li>
+                        <li><strong>Enqueue:</strong> O(1)</li>
+                        <li><strong>Dequeue:</strong> O(1)</li>
+                        <li><strong>Peek:</strong> O(1)</li>
+                        <li><strong>isEmpty:</strong> O(1)</li>
+                        <li class="problem"><strong>Problem:</strong> Fixed size, wasted space</li>
+                    </ul>
+                </div>
+                <div class="complexity-card circular">
+                    <h4>Circular Queue</h4>
+                    <ul class="complexity-list">
+                        <li><strong>Enqueue:</strong> O(1)</li>
+                        <li><strong>Dequeue:</strong> O(1)</li>
+                        <li><strong>Peek:</strong> O(1)</li>
+                        <li><strong>isEmpty:</strong> O(1)</li>
+                        <li class="advantage"><strong>Fix:</strong> Reuses space by wrapping!</li>
                     </ul>
                 </div>
                 <div class="complexity-card linked">
-                    <h4>Linked List Implementation</h4>
+                    <h4>Linked List Queue</h4>
                     <ul class="complexity-list">
-                        <li><strong>Enqueue:</strong> O(1) - Add to rear</li>
-                        <li><strong>Dequeue:</strong> O(1) - Remove from front</li>
-                        <li><strong>Peek:</strong> O(1) - Access front node</li>
-                        <li><strong>isEmpty:</strong> O(1) - Check if head is null</li>
-                        <li class="advantage"><strong>Advantage:</strong> Dynamic size, no wasted space</li>
+                        <li><strong>Enqueue:</strong> O(1)</li>
+                        <li><strong>Dequeue:</strong> O(1)</li>
+                        <li><strong>Peek:</strong> O(1)</li>
+                        <li><strong>isEmpty:</strong> O(1)</li>
+                        <li class="advantage"><strong>Best:</strong> Dynamic, no waste</li>
                     </ul>
                 </div>
             </div>
             <div class="best-impl">
-                <h4>Best Implementation?</h4>
+                <h4>Which Implementation Should You Use?</h4>
                 <p>
-                    <strong>Linked List is generally better</strong> for queues because it has dynamic size and no wasted space. 
-                    Array implementation suffers from the problem shown above - space at the beginning becomes unusable after dequeues. 
-                    A <strong>Circular Queue</strong> (array-based) solves this by wrapping around, but Linked List remains the most flexible choice.
+                    <strong>Circular Queue</strong> solves the array wasted space problem elegantly using the modulo operator to wrap indices around. 
+                    However, <strong>Linked List is still the best choice</strong> for most real-world applications because it's truly dynamic (grows/shrinks as needed) and conceptually simpler.
+                    Use Circular Queue when you need fixed-size, cache-friendly memory with no waste.
                 </p>
             </div>
         </div>
@@ -510,10 +672,12 @@
         let arraySize = 8;
         let front = 0;
         let rear = -1;
+        let size = 0;
         let highlightIndex = -1;
         let showingCode = false;
         let currentCodeView = 'array';
         let previousVariables = {};
+        let showWrapIndicator = false;
 
         const codes = {
             array: `// Array-Based Queue Implementation
@@ -532,7 +696,6 @@ public class ArrayQueue {
         size = 0;
     }
     
-    // Enqueue: Add element to rear - O(1)
     public void enqueue(int item) {
         if (isFull()) {
             throw new IllegalStateException("Queue is full");
@@ -540,10 +703,8 @@ public class ArrayQueue {
         rear++;
         queue[rear] = item;
         size++;
-        System.out.println("Enqueued: " + item);
     }
     
-    // Dequeue: Remove element from front - O(1)
     public int dequeue() {
         if (isEmpty()) {
             throw new IllegalStateException("Queue is empty");
@@ -551,11 +712,9 @@ public class ArrayQueue {
         int item = queue[front];
         front++;
         size--;
-        System.out.println("Dequeued: " + item);
         return item;
     }
     
-    // Peek: View front element - O(1)
     public int peek() {
         if (isEmpty()) {
             throw new IllegalStateException("Queue is empty");
@@ -563,23 +722,73 @@ public class ArrayQueue {
         return queue[front];
     }
     
-    // Check if empty - O(1)
     public boolean isEmpty() {
         return size == 0;
     }
     
-    // Check if full - O(1)
     public boolean isFull() {
         return rear == capacity - 1;
     }
+}`,
+            circular: `// Circular Queue - Solves Space Waste!
+public class CircularQueue {
+    private int[] queue;
+    private int front;
+    private int rear;
+    private int capacity;
+    private int size;
     
-    public int size() {
-        return size;
+    public CircularQueue(int capacity) {
+        this.capacity = capacity;
+        queue = new int[capacity];
+        front = 0;
+        rear = -1;
+        size = 0;
     }
+    
+    // MODULO makes it wrap around!
+    public void enqueue(int item) {
+        if (isFull()) {
+            throw new IllegalStateException("Queue is full");
+        }
+        // Key: (rear + 1) % capacity wraps to 0
+        rear = (rear + 1) % capacity;
+        queue[rear] = item;
+        size++;
+    }
+    
+    public int dequeue() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        int item = queue[front];
+        // Key: (front + 1) % capacity wraps to 0
+        front = (front + 1) % capacity;
+        size--;
+        return item;
+    }
+    
+    public int peek() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        return queue[front];
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
+    }
+    
+    public boolean isFull() {
+        return size == capacity;
+    }
+    
+    // Example of wrapping:
+    // If capacity = 8, rear = 7
+    // Then (7 + 1) % 8 = 0 (wraps to start!)
 }`,
             linked: `// Linked List Queue Implementation
 public class LinkedQueue {
-    // Node class for linked list
     private class Node {
         int data;
         Node next;
@@ -600,7 +809,6 @@ public class LinkedQueue {
         size = 0;
     }
     
-    // Enqueue: Add element to rear - O(1)
     public void enqueue(int item) {
         Node newNode = new Node(item);
         
@@ -612,10 +820,8 @@ public class LinkedQueue {
             rear = newNode;
         }
         size++;
-        System.out.println("Enqueued: " + item);
     }
     
-    // Dequeue: Remove element from front - O(1)
     public int dequeue() {
         if (isEmpty()) {
             throw new IllegalStateException("Queue is empty");
@@ -629,11 +835,9 @@ public class LinkedQueue {
         }
         
         size--;
-        System.out.println("Dequeued: " + item);
         return item;
     }
     
-    // Peek: View front element - O(1)
     public int peek() {
         if (isEmpty()) {
             throw new IllegalStateException("Queue is empty");
@@ -641,58 +845,12 @@ public class LinkedQueue {
         return front.data;
     }
     
-    // Check if empty - O(1)
     public boolean isEmpty() {
         return front == null;
     }
     
     public int size() {
         return size;
-    }
-}`,
-            circular: `// Circular Queue
-public class CircularQueue {
-    private int[] queue;
-    private int front;
-    private int rear;
-    private int capacity;
-    private int size;
-    
-    public CircularQueue(int capacity) {
-        this.capacity = capacity;
-        queue = new int[capacity];
-        front = 0;
-        rear = -1;
-        size = 0;
-    }
-    
-    // Enqueue with circular wrapping - O(1)
-    public void enqueue(int item) {
-        if (isFull()) {
-            throw new IllegalStateException("Queue is full");
-        }
-        rear = (rear + 1) % capacity;
-        queue[rear] = item;
-        size++;
-    }
-    
-    // Dequeue with circular wrapping - O(1)
-    public int dequeue() {
-        if (isEmpty()) {
-            throw new IllegalStateException("Queue is empty");
-        }
-        int item = queue[front];
-        front = (front + 1) % capacity;
-        size--;
-        return item;
-    }
-    
-    public boolean isEmpty() {
-        return size == 0;
-    }
-    
-    public boolean isFull() {
-        return size == capacity;
     }
 }`
         };
@@ -705,32 +863,20 @@ public class CircularQueue {
                 currentVariables.front = front;
                 currentVariables.rear = rear;
                 currentVariables.capacity = arraySize;
-                currentVariables.size = front > rear || rear < 0 ? 0 : (rear - front + 1);
-                currentVariables.isEmpty = front > rear || rear < 0;
+                currentVariables.size = size;
+                currentVariables.isEmpty = size === 0;
                 currentVariables.isFull = rear >= arraySize - 1;
                 
                 gridEl.innerHTML = `
-                    <div class="variable-item ${previousVariables.front !== front ? 'changed' : ''}" id="var-front">
-                        <div class="variable-label">front</div>
-                        <div class="variable-value">${front}</div>
-                    </div>
-                    <div class="variable-item ${previousVariables.rear !== rear ? 'changed' : ''}" id="var-rear">
-                        <div class="variable-label">rear</div>
-                        <div class="variable-value">${rear}</div>
-                    </div>
-                    <div class="variable-item" id="var-capacity">
-                        <div class="variable-label">capacity</div>
-                        <div class="variable-value">${arraySize}</div>
-                    </div>
-                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}" id="var-size">
+                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}">
                         <div class="variable-label">size</div>
                         <div class="variable-value">${currentVariables.size}</div>
                     </div>
-                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}" id="var-empty">
+                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}">
                         <div class="variable-label">isEmpty</div>
                         <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
                     </div>
-                    <div class="variable-item ${previousVariables.isFull !== currentVariables.isFull ? 'changed' : ''}" id="var-full">
+                    <div class="variable-item ${previousVariables.isFull !== currentVariables.isFull ? 'changed' : ''}">
                         <div class="variable-label">isFull</div>
                         <div class="variable-value">${currentVariables.isFull ? '✓' : '✗'}</div>
                     </div>
@@ -742,19 +888,19 @@ public class CircularQueue {
                 currentVariables.rearData = queue.length > 0 ? queue[queue.length - 1] : 'null';
                 
                 gridEl.innerHTML = `
-                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}" id="var-size">
+                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}">
                         <div class="variable-label">size</div>
                         <div class="variable-value">${currentVariables.size}</div>
                     </div>
-                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}" id="var-empty">
+                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}">
                         <div class="variable-label">isEmpty</div>
                         <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
                     </div>
-                    <div class="variable-item ${previousVariables.frontData !== currentVariables.frontData ? 'changed' : ''}" id="var-front-data">
+                    <div class="variable-item ${previousVariables.frontData !== currentVariables.frontData ? 'changed' : ''}">
                         <div class="variable-label">front.data</div>
                         <div class="variable-value">${currentVariables.frontData}</div>
                     </div>
-                    <div class="variable-item ${previousVariables.rearData !== currentVariables.rearData ? 'changed' : ''}" id="var-rear-data">
+                    <div class="variable-item ${previousVariables.rearData !== currentVariables.rearData ? 'changed' : ''}">
                         <div class="variable-label">rear.data</div>
                         <div class="variable-value">${currentVariables.rearData}</div>
                     </div>
@@ -776,16 +922,26 @@ public class CircularQueue {
             reset();
             
             const arrayBtn = document.getElementById('arrayBtn');
+            const circularBtn = document.getElementById('circularBtn');
             const linkedBtn = document.getElementById('linkedBtn');
+            const explanation = document.getElementById('circularExplanation');
+            
+            arrayBtn.className = 'btn-array';
+            circularBtn.className = 'btn-circular';
+            linkedBtn.className = 'btn-linked';
             
             if (type === 'array') {
                 arrayBtn.className = 'btn-array active';
-                linkedBtn.className = 'btn-linked';
                 document.getElementById('queueTitle').textContent = 'Array-Based Queue';
+                explanation.style.display = 'none';
+            } else if (type === 'circular') {
+                circularBtn.className = 'btn-circular active';
+                document.getElementById('queueTitle').textContent = 'Circular Queue (Watch the Wrap!)';
+                explanation.style.display = 'block';
             } else {
-                arrayBtn.className = 'btn-array';
                 linkedBtn.className = 'btn-linked active';
                 document.getElementById('queueTitle').textContent = 'Linked List Queue';
+                explanation.style.display = 'none';
             }
             
             render();
@@ -807,8 +963,8 @@ public class CircularQueue {
             document.getElementById('codeDisplay').textContent = codes[type];
             
             document.getElementById('arrayCodeBtn').className = 'code-tab';
-            document.getElementById('linkedCodeBtn').className = 'code-tab';
             document.getElementById('circularCodeBtn').className = 'code-tab';
+            document.getElementById('linkedCodeBtn').className = 'code-tab';
             document.getElementById(type + 'CodeBtn').className = 'code-tab active';
         }
 
@@ -832,12 +988,41 @@ public class CircularQueue {
                 
                 queue[rear + 1] = value;
                 rear++;
+                size++;
                 updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
                 render();
                 showMessage(`Enqueued: ${value}`);
+            } else if (queueType === 'circular') {
+                if (size >= arraySize) {
+                    showMessage('Queue is full!', true);
+                    return;
+                }
+                
+                const newRear = (rear + 1) % arraySize;
+                
+                if (newRear < rear) {
+                    showWrapIndicator = true;
+                    render();
+                    await sleep(800);
+                    showWrapIndicator = false;
+                }
+                
+                highlightIndex = newRear;
+                render();
+                await sleep(500);
+                
+                queue[newRear] = value;
+                rear = newRear;
+                size++;
+                updateVariables();
+                
+                await sleep(500);
+                highlightIndex = -1;
+                render();
+                showMessage(`Enqueued: ${value} at index ${rear} (wrapped!)`);
             } else {
                 highlightIndex = queue.length;
                 render();
@@ -856,7 +1041,7 @@ public class CircularQueue {
 
         async function dequeue() {
             if (queueType === 'array') {
-                if (front > rear || rear < 0) {
+                if (size === 0) {
                     showMessage('Queue is empty!', true);
                     return;
                 }
@@ -867,12 +1052,42 @@ public class CircularQueue {
                 const value = queue[front];
                 queue[front] = undefined;
                 front++;
+                size--;
                 updateVariables();
                 
                 await sleep(500);
                 highlightIndex = -1;
                 render();
                 showMessage(`Dequeued: ${value}`);
+            } else if (queueType === 'circular') {
+                if (size === 0) {
+                    showMessage('Queue is empty!', true);
+                    return;
+                }
+                highlightIndex = front;
+                render();
+                await sleep(500);
+                
+                const value = queue[front];
+                queue[front] = undefined;
+                
+                const newFront = (front + 1) % arraySize;
+                
+                if (newFront < front) {
+                    showWrapIndicator = true;
+                    render();
+                    await sleep(800);
+                    showWrapIndicator = false;
+                }
+                
+                front = newFront;
+                size--;
+                updateVariables();
+                
+                await sleep(500);
+                highlightIndex = -1;
+                render();
+                showMessage(`Dequeued: ${value}, front wrapped to ${front}`);
             } else {
                 if (queue.length === 0) {
                     showMessage('Queue is empty!', true);
@@ -893,8 +1108,8 @@ public class CircularQueue {
         }
 
         async function peek() {
-            if (queueType === 'array') {
-                if (front > rear || rear < 0) {
+            if (queueType === 'array' || queueType === 'circular') {
+                if (size === 0) {
                     showMessage('Queue is empty!', true);
                     return;
                 }
@@ -919,9 +1134,8 @@ public class CircularQueue {
         }
 
         function isEmpty() {
-            if (queueType === 'array') {
-                const empty = front > rear || rear < 0;
-                showMessage(empty ? 'Queue is empty: true' : 'Queue is empty: false');
+            if (queueType === 'array' || queueType === 'circular') {
+                showMessage(size === 0 ? 'Queue is empty: true' : 'Queue is empty: false');
             } else {
                 showMessage(queue.length === 0 ? 'Queue is empty: true' : 'Queue is empty: false');
             }
@@ -931,21 +1145,64 @@ public class CircularQueue {
             queue = [];
             front = 0;
             rear = -1;
+            size = 0;
             highlightIndex = -1;
             previousVariables = {};
+            showWrapIndicator = false;
             document.getElementById('inputValue').value = '';
             render();
             updateVariables();
         }
 
+        function renderCircular() {
+            const viz = document.getElementById('visualization');
+            const radius = 120;
+            const centerX = 160;
+            const centerY = 160;
+            
+            let html = '<div class="circular-container">';
+            
+            html += `<div class="wrap-indicator ${showWrapIndicator ? 'show' : ''}">🔄</div>`;
+            
+            for (let i = 0; i < arraySize; i++) {
+                const angle = (i / arraySize) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle) - 35;
+                const y = centerY + radius * Math.sin(angle) - 35;
+                
+                const isFront = i === front && size > 0;
+                const isRear = i === rear && size > 0;
+                const isHighlight = i === highlightIndex;
+                
+                html += `
+                    <div class="circular-cell" style="left: ${x}px; top: ${y}px;">
+                        ${isFront ? '<div class="circular-label label-front-circular">FRONT</div>' : ''}
+                        ${isRear && !isFront ? '<div class="circular-label label-rear-circular">REAR</div>' : ''}
+                        ${isFront && isRear ? '<div class="circular-label label-rear-circular">FRONT/REAR</div>' : ''}
+                        <div class="circular-box ${queue[i] !== undefined ? 'filled' : ''} ${isHighlight ? 'highlight' : ''}">
+                            <div>${queue[i] !== undefined ? queue[i] : ''}</div>
+                            <div class="circular-index">[${i}]</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            viz.innerHTML = html;
+        }
+
         function render() {
             const viz = document.getElementById('visualization');
+            
+            if (queueType === 'circular') {
+                renderCircular();
+                return;
+            }
             
             if (queueType === 'array') {
                 let html = '';
                 for (let i = 0; i < arraySize; i++) {
-                    const isFront = i === front && front <= rear && rear >= 0;
-                    const isRear = i === rear && rear >= 0;
+                    const isFront = i === front && size > 0;
+                    const isRear = i === rear && size > 0;
                     const isHighlight = i === highlightIndex;
                     
                     html += `
@@ -994,4 +1251,92 @@ public class CircularQueue {
         updateVariables();
     </script>
 </body>
-</html>
+</html> class="variable-item ${previousVariables.front !== front ? 'changed' : ''}">
+                        <div class="variable-label">front</div>
+                        <div class="variable-value">${front}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.rear !== rear ? 'changed' : ''}">
+                        <div class="variable-label">rear</div>
+                        <div class="variable-value">${rear}</div>
+                    </div>
+                    <div class="variable-item">
+                        <div class="variable-label">capacity</div>
+                        <div class="variable-value">${arraySize}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}">
+                        <div class="variable-label">size</div>
+                        <div class="variable-value">${currentVariables.size}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}">
+                        <div class="variable-label">isEmpty</div>
+                        <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
+                    </div>
+                    <div class="variable-item ${previousVariables.isFull !== currentVariables.isFull ? 'changed' : ''}">
+                        <div class="variable-label">isFull</div>
+                        <div class="variable-value">${currentVariables.isFull ? '✓' : '✗'}</div>
+                    </div>
+                `;
+            } else if (queueType === 'circular') {
+        currentVariables.front = front;
+        currentVariables.rear = rear;
+        currentVariables.capacity = arraySize;
+        currentVariables.size = size;
+        currentVariables.isEmpty = size === 0;
+        currentVariables.isFull = size === arraySize;
+
+        gridEl.innerHTML = `
+            <div class="variable-item ${previousVariables.front !== front ? 'changed' : ''}">
+                <div class="variable-label">front</div>
+                <div class="variable-value">${front}</div>
+            </div>
+            <div class="variable-item ${previousVariables.rear !== rear ? 'changed' : ''}">
+                <div class="variable-label">rear</div>
+                <div class="variable-value">${rear}</div>
+            </div>
+            <div class="variable-item">
+                <div class="variable-label">capacity</div>
+                <div class="variable-value">${arraySize}</div>
+            </div>
+            <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}">
+                <div class="variable-label">size</div>
+                <div class="variable-value">${currentVariables.size}</div>
+            </div>
+            <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}">
+                <div class="variable-label">isEmpty</div>
+                <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
+            </div>
+            <div class="variable-item ${previousVariables.isFull !== currentVariables.isFull ? 'changed' : ''}">
+                <div class="variable-label">isFull</div>
+                <div class="variable-value">${currentVariables.isFull ? '✓' : '✗'}</div>
+            </div>
+        `;
+    }
+
+    else { // linked list
+        currentVariables.size = queue.length;
+        currentVariables.isEmpty = queue.length === 0;
+        currentVariables.frontData = queue.length ? queue[0] : 'null';
+        currentVariables.rearData = queue.length ? queue[queue.length - 1] : 'null';
+
+        gridEl.innerHTML = `
+            <div class="variable-item ${previousVariables.size !== currentVariables.size ? 'changed' : ''}">
+                <div class="variable-label">size</div>
+                <div class="variable-value">${currentVariables.size}</div>
+            </div>
+            <div class="variable-item ${previousVariables.isEmpty !== currentVariables.isEmpty ? 'changed' : ''}">
+                <div class="variable-label">isEmpty</div>
+                <div class="variable-value">${currentVariables.isEmpty ? '✓' : '✗'}</div>
+            </div>
+            <div class="variable-item ${previousVariables.frontData !== currentVariables.frontData ? 'changed' : ''}">
+                <div class="variable-label">front.data</div>
+                <div class="variable-value">${currentVariables.frontData}</div>
+            </div>
+            <div class="variable-item ${previousVariables.rearData !== currentVariables.rearData ? 'changed' : ''}">
+                <div class="variable-label">rear.data</div>
+                <div class="variable-value">${currentVariables.rearData}</div>
+            </div>
+        `;
+    }
+
+    previousVariables = { ...currentVariables };
+}
